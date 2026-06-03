@@ -6,7 +6,7 @@ func (c *Container) GetGenerateConfigUseCase() *usecase.GenerateConfig {
 	if c.generateConfigUseCase == nil {
 		c.generateConfigUseCase = usecase.NewGenerateConfig(
 			c.GetLogger(),
-			c.getConfigGenerator(),
+			c.GetConfigGenerator(),
 			c.getOutputFilePath(),
 		)
 	}
