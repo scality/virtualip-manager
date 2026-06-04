@@ -1,10 +1,15 @@
-# virtualip-manager
+# CLAUDE.md
+Working guide for virtualip-manager. The project's documentation is imported below so it is always in context — read it and follow it instead of rediscovering the conventions each time.
 
-This is a **Go service that manages VirtualIPs in multinetwork environments**. It is packaged as a single `manager` binary (distroless, non-root) and follows a Kubernetes operator/controller-style layout. It contains:
+- Usage, flags, and behavior: @README.md
+- Architecture, the sync model, and design decisions: @DESIGN.md
+- Workflow and coding conventions: @CONTRIBUTING.md
 
-- Entry point and command wiring (`cmd/`)
-- Build-time configuration such as application name and version (`cmd/config/`)
-- Containerized build via multi-stage `Dockerfile` (golang-alpine builder → distroless/static runtime)
-- CI workflows for build, test, e2e, release, promote, SBOM, and pre/post-merge checks (`.github/workflows/`)
+## Keep the docs in sync
+The docs are part of every change, not an afterthought. In the same PR, update the doc that owns what you changed:
 
-Tech stack: Go 1.25, modules (`go.mod`), `golangci-lint` for linting, Renovate for dependency updates. Expect mostly `.go` files, plus YAML workflows and the `Dockerfile`.
+- behavior, flags, or output → @README.md
+- architecture or a design decision → @DESIGN.md
+- conventions or workflow → @CONTRIBUTING.md
+
+If a change contradicts something written in these docs, fix the docs rather than leaving them stale.
