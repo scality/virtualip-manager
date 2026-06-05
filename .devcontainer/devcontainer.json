@@ -1,0 +1,56 @@
+{
+  "name": "VirtualIP Manager DevContainer",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:3": {
+      "dockerDashComposeVersion": "none",
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "telemetry.telemetryLevel": "off",
+        "redhat.telemetry.enabled": false,
+        "editor.renderWhitespace": "all",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "python.terminal.activateEnvironment": false
+      },
+      "extensions": [
+        //Kubernetes support
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        //Create TODO and FIXME tree
+        "Gruntfuggly.todo-tree",
+        //Go support
+        "golang.go",
+        //Remote container support
+        "ms-vscode-remote.remote-containers",
+        //YAML support
+        "redhat.vscode-yaml",
+        //Github Action helper
+        "github.vscode-github-actions",
+        //Docker helper
+        "ms-azuretools.vscode-docker",
+        //Gherkin support and helper
+        "CucumberOpen.cucumber-official",
+        //Mardown support
+        "yzhang.markdown-all-in-one",
+        //Compare text selections
+        "ryu1kn.partial-diff",
+        //Ginko support
+        "joselitofilho.ginkgotestexplorer"
+      ]
+    }
+  },
+  "remoteUser": "vscode"
+}
