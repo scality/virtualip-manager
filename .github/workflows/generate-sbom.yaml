@@ -1,0 +1,75 @@
+name: Generate SBOM
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-name:
+        description: >-
+          Docker image name to use to generate sbom from
+        type: string
+        required: true
+      image-version:
+        description: >-
+          The version of the image to generate sbom from
+        type: string
+        required: false
+        default: ""
+      upload-sbom:
+        description: >-
+          Whether to upload the sbom to the repository
+        type: boolean
+        required: false
+        default: false
+  workflow_call:
+    inputs:
+      image-name:
+        description: >-
+          Docker image name to use to generate sbom from
+        type: string
+        required: true
+      image-version:
+        description: >-
+          The version of the image to generate sbom from
+        type: string
+        required: false
+        default: ""
+      upload-sbom:
+        description: >-
+          Whether to upload the sbom to the repository
+        type: boolean
+        required: false
+        default: false
+  
+jobs:
+  generate-sbom:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+      - name: Login to the registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate sbom for virtualip-manager
+        uses: scality/sbom@v2.1.4
+        with:
+          target: ${{ inputs.image-name }}
+          target_type: image
+          version: ${{ inputs.image-version }}
+          output_dir: /tmp
+          output_file: sbom.json
+      - name: Upload sbom to repository
+        if: inputs.upload-sbom == true
+        uses: scality/sbom-upload@v1.0.7
+        with:
+          url: ${{ vars.DEPENDENCY_TRACK_HOSTNAME }}
+          api-key: ${{ secrets.DEPENDENCY_TRACK_APIKEY }}
+          project-sbom: /tmp/sbom.json
+          parent-project-name: ${{ github.repository }}
+          parent-project-collection-logic: "NONE"
