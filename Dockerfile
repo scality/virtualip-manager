@@ -4,7 +4,7 @@ ARG BASE_IMAGE=docker.io/alpine
 ########### Build the manager binary ###########
 ################################################
 # Build the manager binary
-FROM golang:1.25.2-alpine3.22 AS builder
+FROM golang:1.26.4-alpine3.22@sha256:727cfc3c40be55cd1bc9a4a059406b28a059857e3be752aa9d09531e12c20c56 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 ARG APPLICATION_VERSION=dev
