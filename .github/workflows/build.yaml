@@ -63,7 +63,7 @@ jobs:
           keepalived_version="$(sed -n 's/^KEEPALIVED_VERSION[[:space:]]*?\?=[[:space:]]*//p' Makefile | head -n1)"
           echo "keepalived-version=$keepalived_version" >> $GITHUB_OUTPUT
       - name: Build image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
           build-args: |
