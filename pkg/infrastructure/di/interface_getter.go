@@ -13,3 +13,10 @@ func (c *Container) getInterfaceGetter() service.InterfaceGetter {
 	}
 	return c.interfaceGetter
 }
+
+func (c *Container) GetMockInterfaceGetter() service.InterfaceGetter {
+	if c.interfaceGetter == nil {
+		c.interfaceGetter = interfacegetter.NewMockHostNetwork()
+	}
+	return c.interfaceGetter
+}

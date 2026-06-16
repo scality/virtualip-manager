@@ -5,7 +5,7 @@ import (
 	"github.com/scality/virtualip-manager/pkg/service"
 )
 
-func (c *Container) getConfigGenerator() service.ConfigGenerator {
+func (c *Container) GetConfigGenerator() service.ConfigGenerator {
 	if c.configGenerator == nil {
 		c.configGenerator = configgenerator.NewKeepalived(
 			c.GetLogger(),
