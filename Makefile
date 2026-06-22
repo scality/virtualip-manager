@@ -3,7 +3,7 @@ GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 # renovate: datasource=github-releases depName=golangci/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.12.2
 # renovate: datasource=github-tags depName=acassen/keepalived extractVersion=^v(?<version>.*)$
-KEEPALIVED_VERSION ?= 2.3.3
+KEEPALIVED_VERSION ?= 2.3.4
 
 IMG ?= virtualip-manager:latest
 
