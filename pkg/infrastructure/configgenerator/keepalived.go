@@ -1,7 +1,9 @@
 package configgenerator
 
 import (
+	"bytes"
 	_ "embed"
+	"io"
 	"log/slog"
 	"strings"
 	"text/template"
@@ -9,7 +11,7 @@ import (
 	"github.com/scality/go-errors"
 	"github.com/scality/virtualip-manager/pkg/domain"
 	"github.com/scality/virtualip-manager/pkg/service"
-	"go.yaml.in/yaml/v2"
+	"go.yaml.in/yaml/v3"
 )
 
 type Keepalived struct {
@@ -85,8 +87,13 @@ func (k *Keepalived) GenerateConfiguration(inputData *domain.VirtualIPConfig) (s
 
 func (k *Keepalived) ParseInputData(inputData []byte) (*domain.VirtualIPConfig, error) {
 	var parsedInputData *domain.VirtualIPConfig
-	err := yaml.UnmarshalStrict(inputData, &parsedInputData)
-	if err != nil {
+	decoder := yaml.NewDecoder(bytes.NewReader(inputData))
+	decoder.KnownFields(true)
+	// yaml/v3 returns io.EOF for empty input, where v2's UnmarshalStrict
+	// returned a nil error and left the pointer nil. Treat EOF the same so
+	// the empty-input check below still owns that case.
+	err := decoder.Decode(&parsedInputData)
+	if err != nil && err != io.EOF {
 		return nil, errors.Wrap(domain.ErrInputFileParsing,
 			errors.WithDetail("failed to parse input data"),
 			errors.WithProperty("inputData", string(inputData)),
