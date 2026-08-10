@@ -63,8 +63,10 @@ ARG VCS_REF
 # Version of the image
 ARG VERSION
 
-RUN addgroup -S keepalived \
-  && adduser -D -S -G keepalived keepalived \
+# The uid/gid are pinned: the kubelet cannot resolve a named USER, so it fails
+# any pod that sets runAsNonRoot without a numeric UID.
+RUN addgroup -g 101 -S keepalived \
+  && adduser -u 100 -D -S -G keepalived keepalived \
   && chown -R keepalived:keepalived /run \
   && mkdir -p /etc/keepalived \
   && chown -R keepalived:keepalived /etc/keepalived
@@ -83,7 +85,7 @@ RUN apk add --no-cache libcap \
 
 RUN apk add --no-cache libnl3 libnftnl bash curl
 
-USER keepalived
+USER 100:101
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/etc/keepalived/keepalived-input.yaml"]
