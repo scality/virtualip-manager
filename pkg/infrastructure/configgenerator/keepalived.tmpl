@@ -7,7 +7,7 @@ global_defs {
 {{- if $healthcheck }}
 
 vrrp_script check_get {
-    script "/etc/keepalived/check-get.sh {{ replace $healthcheck "__NODE_IP__" $.NodeIP }}"
+    script "/etc/keepalived/check-get.sh {{ replace $healthcheck $.NodeIPToken $.NodeIP }}"
     interval 5
     weight 60
 }
@@ -15,7 +15,7 @@ vrrp_script check_get {
 {{- if $healthcheckNodePort }}
 
 vrrp_script check_get_nodeport {
-    script "/etc/keepalived/check-get.sh {{ replace $healthcheckNodePort "__NODE_IP__" $.NodeIP }}"
+    script "/etc/keepalived/check-get.sh {{ replace $healthcheckNodePort $.NodeIPToken $.NodeIP }}"
     interval 5
     weight 60
 }

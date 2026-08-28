@@ -49,8 +49,9 @@ var templateContent string
 // the node identity so the template no longer reads the environment directly.
 type templateData struct {
 	*domain.VirtualIPConfig
-	NodeIP   string
-	NodeName string
+	NodeIP      string
+	NodeName    string
+	NodeIPToken string
 }
 
 // GenerateConfiguration generates the output configuration from the input data.
@@ -70,6 +71,7 @@ func (k *Keepalived) GenerateConfiguration(inputData *domain.VirtualIPConfig) (s
 		VirtualIPConfig: inputData,
 		NodeIP:          k.nodeIP,
 		NodeName:        k.nodeName,
+		NodeIPToken:     domain.NODE_IP_TOKEN,
 	}
 
 	outputData := strings.Builder{}
@@ -109,6 +111,10 @@ func (k *Keepalived) ParseInputData(inputData []byte) (*domain.VirtualIPConfig, 
 		)
 	}
 
+	// Normalize before validating so an empty healthcheck key reads as absent
+	// rather than as an invalid URL.
+	parsedInputData.CleanHealthchecks()
+
 	err = parsedInputData.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err,
@@ -116,8 +122,6 @@ func (k *Keepalived) ParseInputData(inputData []byte) (*domain.VirtualIPConfig, 
 			errors.WithProperty("inputData", string(inputData)),
 		)
 	}
-
-	parsedInputData.CleanHealthchecks()
 
 	return parsedInputData, nil
 }

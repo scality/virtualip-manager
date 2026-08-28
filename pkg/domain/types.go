@@ -1,7 +1,9 @@
 package domain
 
 import (
+	"net/url"
 	"slices"
+	"strings"
 
 	"github.com/scality/go-errors"
 )
@@ -9,7 +11,13 @@ import (
 var (
 	EXPECTED_KIND         string   = "VirtualIPConfiguration"
 	SUPPORTED_API_VERSION []string = []string{"loadbalancer.scality.com/v1alpha1"}
+	NODE_IP_TOKEN         string   = "__NODE_IP__"
 )
+
+// healthcheckForbiddenChars are characters that would either break out of the
+// quoted `script "…"` string in the generated keepalived config or be
+// interpreted by a shell if keepalived ever falls back to one.
+const healthcheckForbiddenChars = "\"'`$;&|<>\\ \t\n\r"
 
 type Address struct {
 	Ip   string `yaml:"ip"`
@@ -83,6 +91,52 @@ func (v *VirtualIPConfig) Validate() error {
 				errors.WithDetail("missing VrId"),
 			)
 		}
+	}
+
+	if err := validateHealthcheckURL("healthcheck", v.Healthcheck); err != nil {
+		return err
+	}
+
+	if err := validateHealthcheckURL("healthcheckNodePort", v.HealthCheckNodePort); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateHealthcheckURL rejects a healthcheck that is not an http(s) URL, or
+// that carries characters unsafe to interpolate into the keepalived config. The
+// NODE_IP_TOKEN is substituted with a placeholder host so the value is
+// parseable before the template resolves it.
+func validateHealthcheckURL(field string, value *string) error {
+	if value == nil {
+		return nil
+	}
+
+	if strings.ContainsAny(*value, healthcheckForbiddenChars) {
+		return errors.Wrap(ErrInvalidInputParameter,
+			errors.WithDetail("healthcheck contains forbidden characters"),
+			errors.WithProperty("field", field),
+			errors.WithProperty("value", *value),
+		)
+	}
+
+	parsed, err := url.Parse(strings.ReplaceAll(*value, NODE_IP_TOKEN, "0.0.0.0"))
+	if err != nil {
+		return errors.Wrap(ErrInvalidInputParameter,
+			errors.WithDetail("healthcheck is not a valid URL"),
+			errors.WithProperty("field", field),
+			errors.WithProperty("value", *value),
+			errors.CausedBy(err),
+		)
+	}
+
+	if (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
+		return errors.Wrap(ErrInvalidInputParameter,
+			errors.WithDetail("healthcheck must be an http or https URL with a host"),
+			errors.WithProperty("field", field),
+			errors.WithProperty("value", *value),
+		)
 	}
 
 	return nil

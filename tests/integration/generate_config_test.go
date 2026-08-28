@@ -55,6 +55,34 @@ var _ = Describe("Parse Input Data", func() {
 			Expect(testResource.HealthCheckNodePort).To(BeNil())
 		})
 
+		It("should return an error if a healthcheck contains a forbidden character", func() {
+			testResource, err = testingSuite.container.GetConfigGenerator().
+				ParseInputData(inputHealthcheckWithQuote)
+			Expect(err).To(MatchError(domain.ErrInvalidInputParameter))
+			Expect(testResource).To(BeNil())
+		})
+
+		It("should return an error if a healthcheck is not an http(s) URL", func() {
+			testResource, err = testingSuite.container.GetConfigGenerator().
+				ParseInputData(inputHealthcheckBadScheme)
+			Expect(err).To(MatchError(domain.ErrInvalidInputParameter))
+			Expect(testResource).To(BeNil())
+		})
+
+		It("should return an error if a healthcheck has no host", func() {
+			testResource, err = testingSuite.container.GetConfigGenerator().
+				ParseInputData(inputHealthcheckNoHost)
+			Expect(err).To(MatchError(domain.ErrInvalidInputParameter))
+			Expect(testResource).To(BeNil())
+		})
+
+		It("should return an error if the healthcheckNodePort is not an http(s) URL", func() {
+			testResource, err = testingSuite.container.GetConfigGenerator().
+				ParseInputData(inputNodePortBadScheme)
+			Expect(err).To(MatchError(domain.ErrInvalidInputParameter))
+			Expect(testResource).To(BeNil())
+		})
+
 		It("should return an error if the input file is a YAML file but malformed", func() {
 			testResource, err = testingSuite.container.GetConfigGenerator().ParseInputData(inputMalformed)
 			Expect(err).To(HaveOccurred())
@@ -159,6 +187,20 @@ var _ = Describe("Generate Output Configuration", func() {
 			outputData, err := testingSuite.container.GetConfigGenerator().GenerateConfiguration(testResource)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(outputData).To(Equal(outputNodePortOnly))
+		})
+
+		It("should substitute __NODE_IP__ in the healthcheckNodePort", func() {
+			By("loading the input file")
+			testResource, err = testingSuite.container.GetConfigGenerator().
+				ParseInputData(inputNodePortWithNodeIPToken)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(*testResource.HealthCheckNodePort).To(ContainSubstring(domain.NODE_IP_TOKEN))
+
+			By("generating the output configuration")
+			outputData, err := testingSuite.container.GetConfigGenerator().GenerateConfiguration(testResource)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(outputData).NotTo(ContainSubstring(domain.NODE_IP_TOKEN))
+			Expect(outputData).To(Equal(outputNodePortWithNodeIPToken))
 		})
 
 		It("should generate both scripts and track both when the two healthchecks are set", func() {

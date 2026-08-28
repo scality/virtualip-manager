@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"net"
 
 	"github.com/scality/go-errors"
 	"github.com/scality/virtualip-manager/pkg/domain"
@@ -59,6 +60,15 @@ func (cfg *Environment) Load(ctx context.Context) error {
 	if cfg.NodeIP == "" {
 		return errors.Wrap(domain.ErrConfigurationLoading,
 			errors.WithDetail("NODE_IP environment variable is required"),
+		)
+	}
+
+	// NodeIP is interpolated into the generated keepalived config, so reject
+	// anything that is not strictly an IP address.
+	if net.ParseIP(cfg.NodeIP) == nil {
+		return errors.Wrap(domain.ErrInvalidIPAddress,
+			errors.WithDetail("NODE_IP is not a valid IP address"),
+			errors.WithProperty("nodeIP", cfg.NodeIP),
 		)
 	}
 

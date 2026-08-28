@@ -197,3 +197,28 @@ vrrp_instance VI_3 {
     }
 }
 `
+
+var outputNodePortWithNodeIPToken = `global_defs {
+    enable_script_security
+    script_user keepalived keepalived
+}
+
+vrrp_script check_get_nodeport {
+    script "/etc/keepalived/check-get.sh http://1.1.1.1:31846"
+    interval 5
+    weight 60
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    priority 130
+    virtual_router_id 51
+    virtual_ipaddress {
+        172.17.0.15
+    }
+    track_script {
+        check_get_nodeport
+    }
+}
+`

@@ -22,7 +22,7 @@ The container entrypoint runs two steps:
 2. `exec keepalived …` — starts keepalived against the generated config.
 
 For each address, the node whose `NODE_NAME` matches the address's `node` becomes the VRRP
-`MASTER` (priority 150); every other node is a `BACKUP` (priority 100).
+`MASTER` (priority 130); every other node is a `BACKUP` (priority 80).
 
 ## Input spec
 
@@ -51,6 +51,9 @@ healthcheckNodePort: http://localhost:31846    # optional; probes a local NodePo
   `vrrp_script check_get_nodeport`. It is meant to probe a service exposed locally on a NodePort.
 - Each `vrrp_instance` gets a `track_script` block listing the scripts that are enabled; when
   neither healthcheck is set, no `vrrp_script` and no `track_script` block is generated.
+- Both healthcheck fields are validated at startup: the value must be an `http` or `https` URL with
+  a host, and must not contain characters that would break the generated keepalived config
+  (quotes, whitespace, and shell metacharacters). A key present but left empty counts as absent.
 
 ## Check script
 
@@ -65,6 +68,9 @@ The check script is used by keepalived to check that the local node, where the k
 | `NODE_IP`          | yes      | —       | This node's IP; substituted into the healthcheck.  |
 | `NODE_NAME`        | yes      | —       | This node's name; decides MASTER vs BACKUP.        |
 | `LOGGER_LOG_LEVEL` | no       | `info`  | Log level for the structured (slog) logger.        |
+
+`NODE_IP` must parse as an IP address; it is interpolated into the generated keepalived config, so
+anything else is rejected at startup.
 
 Flags: `-input <path>` (required) and `-output <path>` (defaults to stdout).
 

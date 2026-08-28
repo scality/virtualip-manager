@@ -32,6 +32,16 @@ addresses:
 healthcheckNodePort: http://localhost:31846
 `)
 
+var inputNodePortWithNodeIPToken = []byte(`---
+apiVersion: loadbalancer.scality.com/v1alpha1
+kind: VirtualIPConfiguration
+addresses:
+- ip: 172.17.0.15
+  node: bootstrap
+  vrId: 51
+healthcheckNodePort: http://__NODE_IP__:31846
+`)
+
 var inputBothHealthchecks = []byte(`---
 apiVersion: loadbalancer.scality.com/v1alpha1
 kind: VirtualIPConfiguration
@@ -57,6 +67,46 @@ addresses:
   node: bootstrap
   vrId: 51
 healthcheckNodePort:
+`)
+
+var inputHealthcheckWithQuote = []byte(`---
+apiVersion: loadbalancer.scality.com/v1alpha1
+kind: VirtualIPConfiguration
+addresses:
+- ip: 172.17.0.15
+  node: bootstrap
+  vrId: 51
+healthcheck: "https://__NODE_IP__:443/heal\"thz"
+`)
+
+var inputHealthcheckBadScheme = []byte(`---
+apiVersion: loadbalancer.scality.com/v1alpha1
+kind: VirtualIPConfiguration
+addresses:
+- ip: 172.17.0.15
+  node: bootstrap
+  vrId: 51
+healthcheck: ftp://__NODE_IP__/healthz
+`)
+
+var inputHealthcheckNoHost = []byte(`---
+apiVersion: loadbalancer.scality.com/v1alpha1
+kind: VirtualIPConfiguration
+addresses:
+- ip: 172.17.0.15
+  node: bootstrap
+  vrId: 51
+healthcheck: not-a-url
+`)
+
+var inputNodePortBadScheme = []byte(`---
+apiVersion: loadbalancer.scality.com/v1alpha1
+kind: VirtualIPConfiguration
+addresses:
+- ip: 172.17.0.15
+  node: bootstrap
+  vrId: 51
+healthcheckNodePort: localhost:31846
 `)
 
 var inputNoHealthcheck = []byte(`---
