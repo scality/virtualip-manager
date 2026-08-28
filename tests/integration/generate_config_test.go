@@ -34,6 +34,27 @@ var _ = Describe("Parse Input Data", func() {
 			Expect(testResource.Healthcheck).To(BeNil())
 		})
 
+		It("should successfully load a input file with only a healthcheckNodePort", func() {
+			testResource, err = testingSuite.container.GetConfigGenerator().ParseInputData(inputNodePortOnly)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(testResource.Healthcheck).To(BeNil())
+			Expect(testResource.HealthCheckNodePort).NotTo(BeNil())
+			Expect(*testResource.HealthCheckNodePort).To(Equal("http://localhost:31846"))
+		})
+
+		It("should successfully load a input file with both healthchecks", func() {
+			testResource, err = testingSuite.container.GetConfigGenerator().ParseInputData(inputBothHealthchecks)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(testResource.Healthcheck).NotTo(BeNil())
+			Expect(testResource.HealthCheckNodePort).NotTo(BeNil())
+		})
+
+		It("should successfully load a input file with empty healthcheckNodePort", func() {
+			testResource, err = testingSuite.container.GetConfigGenerator().ParseInputData(inputEmptyNodePort)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(testResource.HealthCheckNodePort).To(BeNil())
+		})
+
 		It("should return an error if the input file is a YAML file but malformed", func() {
 			testResource, err = testingSuite.container.GetConfigGenerator().ParseInputData(inputMalformed)
 			Expect(err).To(HaveOccurred())
@@ -125,6 +146,44 @@ var _ = Describe("Generate Output Configuration", func() {
 			outputData, err := testingSuite.container.GetConfigGenerator().GenerateConfiguration(testResource)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(outputData).To(Equal(outputNoHealthcheck))
+		})
+
+		It("should generate a check_get_nodeport script when only healthcheckNodePort is set", func() {
+			By("loading the input file")
+			testResource, err = testingSuite.container.GetConfigGenerator().ParseInputData(inputNodePortOnly)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(testResource.Healthcheck).To(BeNil())
+			Expect(testResource.HealthCheckNodePort).NotTo(BeNil())
+
+			By("generating the output configuration")
+			outputData, err := testingSuite.container.GetConfigGenerator().GenerateConfiguration(testResource)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(outputData).To(Equal(outputNodePortOnly))
+		})
+
+		It("should generate both scripts and track both when the two healthchecks are set", func() {
+			By("loading the input file")
+			testResource, err = testingSuite.container.GetConfigGenerator().ParseInputData(inputBothHealthchecks)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(testResource.Healthcheck).NotTo(BeNil())
+			Expect(testResource.HealthCheckNodePort).NotTo(BeNil())
+
+			By("generating the output configuration")
+			outputData, err := testingSuite.container.GetConfigGenerator().GenerateConfiguration(testResource)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(outputData).To(Equal(outputBothHealthchecks))
+		})
+
+		It("should not generate any track_script section when no healthcheck is set", func() {
+			By("loading the input file")
+			testResource, err = testingSuite.container.GetConfigGenerator().ParseInputData(inputNoHealthcheck)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("generating the output configuration")
+			outputData, err := testingSuite.container.GetConfigGenerator().GenerateConfiguration(testResource)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(outputData).NotTo(ContainSubstring("track_script"))
+			Expect(outputData).NotTo(ContainSubstring("vrrp_script"))
 		})
 
 		It("should return an error if no interfaces are found", func() {

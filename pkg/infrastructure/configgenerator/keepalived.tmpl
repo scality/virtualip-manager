@@ -3,10 +3,19 @@ global_defs {
     script_user keepalived keepalived
 }
 {{- $healthcheck := .Healthcheck }}
+{{- $healthcheckNodePort := .HealthCheckNodePort }}
 {{- if $healthcheck }}
 
 vrrp_script check_get {
     script "/etc/keepalived/check-get.sh {{ replace $healthcheck "__NODE_IP__" $.NodeIP }}"
+    interval 5
+    weight 60
+}
+{{- end }}
+{{- if $healthcheckNodePort }}
+
+vrrp_script check_get_nodeport {
+    script "/etc/keepalived/check-get.sh {{ replace $healthcheckNodePort "__NODE_IP__" $.NodeIP }}"
     interval 5
     weight 60
 }
@@ -17,14 +26,19 @@ vrrp_script check_get {
 vrrp_instance VI_{{ add $index 1 }} {
     state {{ if $isMaster }}MASTER{{ else }}BACKUP{{ end }}
     interface {{ getInterfaceFromIP $addr.Ip }}
-    priority {{ if $isMaster }}150{{ else }}100{{ end }}
+    priority {{ if $isMaster }}130{{ else }}80{{ end }}
     virtual_router_id {{ $addr.VrId }}
     virtual_ipaddress {
         {{ $addr.Ip }}
     }
-    {{- if $healthcheck }}
+    {{- if or $healthcheck $healthcheckNodePort }}
     track_script {
+        {{- if $healthcheck }}
         check_get
+        {{- end }}
+        {{- if $healthcheckNodePort }}
+        check_get_nodeport
+        {{- end }}
     }
     {{- end }}
 }

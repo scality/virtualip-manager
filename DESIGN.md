@@ -48,7 +48,8 @@ pkg/domain             ── VirtualIPConfig, Address, sentinel errors
 Pure data and error definitions, no behavior and no outward dependencies:
 
 - `types.go` — `VirtualIPConfig` (apiVersion, kind, addresses, healthcheck) and `Address`
-  (`ip`, `node`, `vrId`). The metadata pointer fields (`apiVersion`, `kind`) distinguish "absent"
+  (`ip`, `node`, `vrId`). The optional `healthcheck` / `healthcheckNodePort` fields are pointers so
+  `CleanHealthchecks` can normalize a present-but-empty key to absent. The metadata pointer fields (`apiVersion`, `kind`) distinguish "absent"
   from "empty" during validation. Also holds the `EXPECTED_KIND` and `SUPPORTED_API_VERSION`
   validation constants.
 - `errors.go` — sentinel errors (`ErrInputFileReading`, `ErrInputFileParsing`,
@@ -109,10 +110,12 @@ cause. This keeps failures structured and greppable from the logs.
 generated config. It emits:
 
 - a `global_defs` block with script security enabled;
-- an optional `vrrp_script check_get` block when `healthcheck` is set (probing via
+- an optional `vrrp_script check_get` block when `healthcheck` is set, and an optional
+  `vrrp_script check_get_nodeport` block when `healthcheckNodePort` is set (both probing via
   `/etc/keepalived/check-get.sh`, with `__NODE_IP__` substituted from the `NODE_IP` env var);
 - one `vrrp_instance VI_<n>` per address, with `state`, `priority`, `interface` (resolved from
-  the IP), `virtual_router_id`, and `virtual_ipaddress`.
+  the IP), `virtual_router_id`, and `virtual_ipaddress`, plus a `track_script` block listing the
+  enabled scripts — emitted only when at least one of the two healthchecks is set.
 
 ## Packaging
 

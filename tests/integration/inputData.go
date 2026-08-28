@@ -16,6 +16,49 @@ addresses:
 healthcheck: https://__NODE_IP__:443/healthz
 `)
 
+var inputNodePortOnly = []byte(`---
+apiVersion: loadbalancer.scality.com/v1alpha1
+kind: VirtualIPConfiguration
+addresses:
+- ip: 172.17.0.15
+  node: bootstrap
+  vrId: 51
+- ip: 172.17.0.16
+  node: node1
+  vrId: 52
+- ip: 172.17.0.17
+  node: node2
+  vrId: 53
+healthcheckNodePort: http://localhost:31846
+`)
+
+var inputBothHealthchecks = []byte(`---
+apiVersion: loadbalancer.scality.com/v1alpha1
+kind: VirtualIPConfiguration
+addresses:
+- ip: 172.17.0.15
+  node: bootstrap
+  vrId: 51
+- ip: 172.17.0.16
+  node: node1
+  vrId: 52
+- ip: 172.17.0.17
+  node: node2
+  vrId: 53
+healthcheck: https://__NODE_IP__:443/healthz
+healthcheckNodePort: http://localhost:31846
+`)
+
+var inputEmptyNodePort = []byte(`---
+apiVersion: loadbalancer.scality.com/v1alpha1
+kind: VirtualIPConfiguration
+addresses:
+- ip: 172.17.0.15
+  node: bootstrap
+  vrId: 51
+healthcheckNodePort:
+`)
+
 var inputNoHealthcheck = []byte(`---
 apiVersion: loadbalancer.scality.com/v1alpha1
 kind: VirtualIPConfiguration

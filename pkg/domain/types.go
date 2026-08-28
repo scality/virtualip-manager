@@ -25,8 +25,9 @@ type VirtualIPConfigMetadata struct {
 type VirtualIPConfig struct {
 	VirtualIPConfigMetadata `yaml:",inline"`
 
-	Addresses   []Address `yaml:"addresses,omitempty"`
-	Healthcheck *string   `yaml:"healthcheck,omitempty"`
+	Addresses           []Address `yaml:"addresses,omitempty"`
+	Healthcheck         *string   `yaml:"healthcheck,omitempty"`
+	HealthCheckNodePort *string   `yaml:"healthcheckNodePort,omitempty"`
 }
 
 func (v *VirtualIPConfig) Validate() error {
@@ -87,8 +88,15 @@ func (v *VirtualIPConfig) Validate() error {
 	return nil
 }
 
-func (v *VirtualIPConfig) CleanHealthcheck() {
+// CleanHealthchecks normalizes the optional healthcheck fields: a key present
+// in the input but left empty is treated as absent, so the template only has
+// to test for nil.
+func (v *VirtualIPConfig) CleanHealthchecks() {
 	if v.Healthcheck != nil && *v.Healthcheck == "" {
 		v.Healthcheck = nil
+	}
+
+	if v.HealthCheckNodePort != nil && *v.HealthCheckNodePort == "" {
+		v.HealthCheckNodePort = nil
 	}
 }

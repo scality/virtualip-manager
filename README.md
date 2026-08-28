@@ -40,12 +40,17 @@ addresses:
     node: node1
     vrId: 52
 healthcheck: https://__NODE_IP__:443/healthz   # optional; __NODE_IP__ is substituted at runtime
+healthcheckNodePort: http://localhost:31846    # optional; probes a local NodePort
 ```
 
 - `addresses` is required and must be non-empty. Each entry needs `ip`, `node`, and `vrId`.
-- `healthcheck` is optional. When set, a `vrrp_script` is added that probes the URL every 5s via
-  `/etc/keepalived/check-get.sh` (shipped from `scripts/check-get.sh`); the `__NODE_IP__` token is
-  replaced with the `NODE_IP` env var.
+- `healthcheck` is optional. When set, a `vrrp_script check_get` is added that probes the URL every
+  5s via `/etc/keepalived/check-get.sh` (shipped from `scripts/check-get.sh`); the `__NODE_IP__`
+  token is replaced with the `NODE_IP` env var.
+- `healthcheckNodePort` is optional and follows the same rules, emitting a
+  `vrrp_script check_get_nodeport`. It is meant to probe a service exposed locally on a NodePort.
+- Each `vrrp_instance` gets a `track_script` block listing the scripts that are enabled; when
+  neither healthcheck is set, no `vrrp_script` and no `track_script` block is generated.
 
 ## Check script
 
@@ -83,6 +88,7 @@ addresses:
   node: node2
   vrId: 53
 healthcheck: https://__NODE_IP__:443/healthz
+healthcheckNodePort: http://localhost:31846
 EOF
 NODE_NAME=bootstrap NODE_IP=1.1.1.1 \
   go run ./cmd -input ./spec.yaml

@@ -117,7 +117,7 @@ func (k *Keepalived) ParseInputData(inputData []byte) (*domain.VirtualIPConfig, 
 		)
 	}
 
-	parsedInputData.CleanHealthcheck()
+	parsedInputData.CleanHealthchecks()
 
 	return parsedInputData, nil
 }
