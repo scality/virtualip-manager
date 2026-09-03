@@ -5,10 +5,18 @@ project conventions, and what CI expects. For the architecture, see [DESIGN.md](
 
 ## Prerequisites
 
-- Go (the version is pinned in [`go.mod`](go.mod) — currently 1.25).
+- Go (the version is pinned in [`go.mod`](go.mod)).
 - Docker (or another `CONTAINER_TOOL`, e.g. podman) for building the image.
 - `golangci-lint` is installed automatically into `bin/` by `make lint`.
 - Git for version control
+
+Everyday commands:
+
+```sh
+make test                # unit + integration tests
+make lint                # golangci-lint
+make docker-build        # build the container image
+```
 
 ## Architecture
 The project uses a clean-architecture layering with an inward-only dependency rule (cmd → infrastructure → usecase → service → domain). Before adding a type, read [DESIGN.md](DESIGN.md) and place it in the layer that owns its responsibility:
@@ -69,3 +77,7 @@ Treat the docs as part of the change, not an afterthought. In the same PR:
 - Keep PRs focused and reasonably sized, with a clear description and linked issues.
 - Ensure CI passes before requesting review. The pre-merge workflow runs the build, `go generate`
   drift check, `golangci-lint`, unit tests, e2e tests, and SBOM generation.
+
+## License
+
+By contributing you agree your contribution is licensed under the repository's [LICENSE](LICENSE)
