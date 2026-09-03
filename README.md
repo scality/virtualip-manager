@@ -1,5 +1,10 @@
 # virtualip-manager
 
+[![Post Merge](https://github.com/scality/virtualip-manager/actions/workflows/post-merge.yaml/badge.svg)](https://github.com/scality/virtualip-manager/actions/workflows/post-merge.yaml)
+[![GitHub release](https://img.shields.io/github/v/release/scality/virtualip-manager)](https://github.com/scality/virtualip-manager/releases/latest)
+[![Go version](https://img.shields.io/github/go-mod/go-version/scality/virtualip-manager)](go.mod)
+[![License](https://img.shields.io/github/license/scality/virtualip-manager)](LICENSE)
+
 A manager for VirtualIPs in multinetwork environments.
 
 `virtualip-manager` renders a [keepalived](https://www.keepalived.org/) configuration from a
