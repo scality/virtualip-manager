@@ -1,0 +1,5 @@
+# Adds namespace to all resources.
+namespace: virtualip-manager-system
+
+resources:
+  - virtualip-manager.yaml
