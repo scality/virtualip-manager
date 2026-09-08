@@ -1,6 +1,6 @@
 module github.com/scality/virtualip-manager
 
-go 1.26.4
+go 1.27.1
 
 require (
 	github.com/onsi/ginkgo/v2 v2.31.0
