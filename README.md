@@ -22,7 +22,7 @@ The container entrypoint runs two steps:
 2. `exec keepalived …` — starts keepalived against the generated config.
 
 For each address, the node whose `NODE_NAME` matches the address's `node` becomes the VRRP
-`MASTER` (priority 150); every other node is a `BACKUP` (priority 100).
+`MASTER` (priority 130); every other node is a `BACKUP` (priority 80).
 
 ## Input spec
 
@@ -40,12 +40,20 @@ addresses:
     node: node1
     vrId: 52
 healthcheck: https://__NODE_IP__:443/healthz   # optional; __NODE_IP__ is substituted at runtime
+healthcheckNodePort: http://localhost:31846    # optional; probes a local NodePort
 ```
 
 - `addresses` is required and must be non-empty. Each entry needs `ip`, `node`, and `vrId`.
-- `healthcheck` is optional. When set, a `vrrp_script` is added that probes the URL every 5s via
-  `/etc/keepalived/check-get.sh` (shipped from `scripts/check-get.sh`); the `__NODE_IP__` token is
-  replaced with the `NODE_IP` env var.
+- `healthcheck` is optional. When set, a `vrrp_script check_get` is added that probes the URL every
+  5s via `/etc/keepalived/check-get.sh` (shipped from `scripts/check-get.sh`); the `__NODE_IP__`
+  token is replaced with the `NODE_IP` env var.
+- `healthcheckNodePort` is optional and follows the same rules, emitting a
+  `vrrp_script check_get_nodeport`. It is meant to probe a service exposed locally on a NodePort.
+- Each `vrrp_instance` gets a `track_script` block listing the scripts that are enabled; when
+  neither healthcheck is set, no `vrrp_script` and no `track_script` block is generated.
+- Both healthcheck fields are validated at startup: the value must be an `http` or `https` URL with
+  a host, and must not contain characters that would break the generated keepalived config
+  (quotes, whitespace, and shell metacharacters). A key present but left empty counts as absent.
 
 ## Check script
 
@@ -60,6 +68,9 @@ The check script is used by keepalived to check that the local node, where the k
 | `NODE_IP`          | yes      | —       | This node's IP; substituted into the healthcheck.  |
 | `NODE_NAME`        | yes      | —       | This node's name; decides MASTER vs BACKUP.        |
 | `LOGGER_LOG_LEVEL` | no       | `info`  | Log level for the structured (slog) logger.        |
+
+`NODE_IP` must parse as an IP address; it is interpolated into the generated keepalived config, so
+anything else is rejected at startup.
 
 Flags: `-input <path>` (required) and `-output <path>` (defaults to stdout).
 
@@ -83,6 +94,7 @@ addresses:
   node: node2
   vrId: 53
 healthcheck: https://__NODE_IP__:443/healthz
+healthcheckNodePort: http://localhost:31846
 EOF
 NODE_NAME=bootstrap NODE_IP=1.1.1.1 \
   go run ./cmd -input ./spec.yaml

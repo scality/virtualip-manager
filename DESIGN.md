@@ -48,9 +48,13 @@ pkg/domain             ── VirtualIPConfig, Address, sentinel errors
 Pure data and error definitions, no behavior and no outward dependencies:
 
 - `types.go` — `VirtualIPConfig` (apiVersion, kind, addresses, healthcheck) and `Address`
-  (`ip`, `node`, `vrId`). The metadata pointer fields (`apiVersion`, `kind`) distinguish "absent"
-  from "empty" during validation. Also holds the `EXPECTED_KIND` and `SUPPORTED_API_VERSION`
-  validation constants.
+  (`ip`, `node`, `vrId`). The optional `healthcheck` / `healthcheckNodePort` fields are pointers so
+  `CleanHealthchecks` can normalize a present-but-empty key to absent; `Validate` then requires each
+  one that survives to be an `http(s)` URL with a host and free of characters that would break out
+  of the quoted `script "…"` string in the generated config (`NODE_IP_TOKEN` is swapped for a
+  placeholder host before parsing, since it is only resolved at render time). The metadata pointer
+  fields (`apiVersion`, `kind`) distinguish "absent" from "empty" during validation. Also holds the
+  `EXPECTED_KIND`, `SUPPORTED_API_VERSION`, and `NODE_IP_TOKEN` constants.
 - `errors.go` — sentinel errors (`ErrInputFileReading`, `ErrInputFileParsing`,
   `ErrMissingInputParameter`, `ErrInvalidInputParameter`, `ErrTemplating`, `ErrInterfaceNotFound`,
   …) used as wrap targets.
@@ -73,13 +77,16 @@ configured output path, and wraps every failure with context (`WithDetail` / `Wi
 ### `pkg/infrastructure` (adapters)
 
 - `configgenerator/keepalived.go` — the `ConfigGenerator` implementation.
-  - `ParseInputData` unmarshals YAML and validates: `kind` must equal `VirtualIPConfiguration`,
-    `apiVersion` must be in the supported list, `addresses` must be present and non-empty.
+  - `ParseInputData` unmarshals YAML, normalizes the healthchecks (`CleanHealthchecks`), then
+    validates: `kind` must equal `VirtualIPConfiguration`, `apiVersion` must be in the supported
+    list, `addresses` must be present and non-empty, and each healthcheck must be a safe `http(s)`
+    URL. Normalization runs first so an empty healthcheck key reads as absent rather than as an
+    invalid URL.
   - `GenerateConfiguration` renders `keepalived.tmpl` (embedded with `//go:embed`). Template
     helpers (`templateFuncs`) expose `add`, `replace`, and `getInterfaceFromIP` (delegated to the
-    `InterfaceGetter`). The node identity (`NodeIP`, `NodeName`) is passed in via the template
-    data rather than read from the environment by the template; MASTER/BACKUP state and priority
-    are decided by comparing each address's `node` to `NodeName`.
+    `InterfaceGetter`). The node identity (`NodeIP`, `NodeName`) and `NodeIPToken` are passed in
+    via the template data rather than read from the environment by the template; MASTER/BACKUP
+    state and priority are decided by comparing each address's `node` to `NodeName`.
 - `interfacegetter/hostnetwork.go` — the production `InterfaceGetter`; iterates `net.Interfaces()`
   and returns the interface whose configured subnet contains the target IP.
 - `interfacegetter/mock.go` — a static mock used by tests (maps the fixture IPs to `eth0/1/2`).
@@ -93,7 +100,8 @@ configured output path, and wraps every failure with context (`WithDetail` / `Wi
 - `main.go` — parses `-input`/`-output`, loads the environment config, builds the container, and
   runs the use case.
 - `config/environment.go` — loads the `Environment` from env vars via `go-envconfig`. `NODE_IP`
-  and `NODE_NAME` are required; `LOGGER_LOG_LEVEL` defaults to `info`. Also defines
+  and `NODE_NAME` are required, and `NODE_IP` must parse as an IP address (`net.ParseIP`) since it
+  is interpolated into the generated config; `LOGGER_LOG_LEVEL` defaults to `info`. Also defines
   `ApplicationName` and `ApplicationVersion` (injected at build time via `-ldflags`).
 
 ## Error handling
@@ -109,10 +117,12 @@ cause. This keeps failures structured and greppable from the logs.
 generated config. It emits:
 
 - a `global_defs` block with script security enabled;
-- an optional `vrrp_script check_get` block when `healthcheck` is set (probing via
+- an optional `vrrp_script check_get` block when `healthcheck` is set, and an optional
+  `vrrp_script check_get_nodeport` block when `healthcheckNodePort` is set (both probing via
   `/etc/keepalived/check-get.sh`, with `__NODE_IP__` substituted from the `NODE_IP` env var);
 - one `vrrp_instance VI_<n>` per address, with `state`, `priority`, `interface` (resolved from
-  the IP), `virtual_router_id`, and `virtual_ipaddress`.
+  the IP), `virtual_router_id`, and `virtual_ipaddress`, plus a `track_script` block listing the
+  enabled scripts — emitted only when at least one of the two healthchecks is set.
 
 ## Packaging
 
