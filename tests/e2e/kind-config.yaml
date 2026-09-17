@@ -1,0 +1,19 @@
+# Kind cluster used by the e2e suite. Two workers are required: the per-node
+# agents run as DaemonSets, and spreading the VirtualIPs over several nodes is
+# part of what the suite exercises. The control-plane node keeps its NoSchedule
+# taint.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+  - role: worker
+    labels:
+      # Use this label to identify this node as a virtualip endpoint
+      # instead of "node-role.kubernetes.io/virtualip" that make cluster creation failed
+      role: virtualip
+  - role: worker
+    labels:
+      # Use this label to identify this node as a virtualip endpoint
+      # instead of "node-role.kubernetes.io/virtualip" that make cluster creation failed
+      role: virtualip
+  - role: worker

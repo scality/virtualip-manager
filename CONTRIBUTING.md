@@ -8,12 +8,15 @@ project conventions, and what CI expects. For the architecture, see [DESIGN.md](
 - Go (the version is pinned in [`go.mod`](go.mod)).
 - Docker (or another `CONTAINER_TOOL`, e.g. podman) for building the image.
 - `golangci-lint` is installed automatically into `bin/` by `make lint`.
+- [Kind](https://kind.sigs.k8s.io/) and `kubectl`, for `make test-e2e` only (install Kind manually;
+  override the binary with `KIND=…`).
 - Git for version control
 
 Everyday commands:
 
 ```sh
 make test                # unit + integration tests
+make test-e2e            # end-to-end tests on a Kind cluster
 make lint                # golangci-lint
 make docker-build        # build the container image
 ```
