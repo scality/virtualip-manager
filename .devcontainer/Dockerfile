@@ -15,7 +15,7 @@ RUN curl -sSfLO https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64 && 
     sudo mv kind-linux-amd64 /usr/local/bin/kind
 
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
-ARG KUBECTL_VERSION=v1.34.8
+ARG KUBECTL_VERSION=v1.37.1
 
 RUN curl -sSfLO https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
     chmod +x kubectl && \
