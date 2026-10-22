@@ -8,7 +8,7 @@ ARG GOLANGCI_LINT_VERSION=2.13.2
 RUN curl -sSfL  https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sudo sh -s -- v${GOLANGCI_LINT_VERSION}
 
 # renovate: datasource=github-releases depName=kubernetes-sigs/kind
-ARG KIND_VERSION=v0.32.0
+ARG KIND_VERSION=v0.33.0
 
 RUN curl -sSfLO https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64 && \
     chmod +x kind-linux-amd64 && \
