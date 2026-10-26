@@ -7,7 +7,7 @@ require (
 	github.com/onsi/gomega v1.41.0
 	github.com/scality/go-errors v1.3.0
 	github.com/sethvargo/go-envconfig v1.3.0
-	go.yaml.in/yaml/v3 v3.0.4
+	go.yaml.in/yaml/v3 v3.0.5
 )
 
 require (
@@ -27,5 +27,4 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/tools v0.47.0 // indirect
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
