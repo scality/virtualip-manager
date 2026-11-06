@@ -6,7 +6,7 @@ import (
 
 	"github.com/scality/go-errors"
 	"github.com/scality/virtualip-manager/pkg/domain"
-	"github.com/sethvargo/go-envconfig"
+	"github.com/sethvargo/go-envconfig/v2"
 )
 
 // ApplicationVersion is the version of the application.
