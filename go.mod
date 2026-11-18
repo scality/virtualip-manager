@@ -3,7 +3,7 @@ module github.com/scality/virtualip-manager
 go 1.27.4
 
 require (
-	github.com/onsi/ginkgo/v2 v2.33.1
+	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
 	github.com/scality/go-errors v1.3.0
 	github.com/sethvargo/go-envconfig/v2 v2.0.0
